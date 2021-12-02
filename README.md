@@ -1,7 +1,8 @@
 # Advent of Code Solutions
 
-|Year|Language|Completed?|
-|2021|Go|Ongoing?|
+| Year | Language | Completed? |
+|------|----------|------------|
+| 2021 | Go       | Ongoing    |
 
 ## Running the code:
 
