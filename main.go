@@ -47,6 +47,7 @@ func main() {
 			}
 		}
 		beeep.Alert("Advent of Code", fmt.Sprintf("AoC %d Day %d starts in %d seconds!", year, day, wait), "assets/icon.png")
+		time.Sleep(time.Duration(wait) * time.Second)
 		prompt = true
 	}
 
@@ -60,6 +61,26 @@ func main() {
 		flag.Usage()
 		return
 	}
+
+	if token == "" {
+		_, err := os.Stat(".token")
+		if !os.IsNotExist(err) {
+			// Read token from file
+			file, err := os.Open(".token")
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			b, err := ioutil.ReadAll(file)
+			if err != nil {
+				panic(err)
+			}
+
+			token = string(b)
+		}
+	}
+
 	fmt.Printf("Running Year %d Day %d\n", year, day)
 
 	years[year](day, level)
@@ -193,7 +214,7 @@ func postAnswers(year, day, level int, answer string) bool {
 	}
 
 	// Answers are posted to https://adventofcode.com/<year>/day/<day>/answer
-	fmt.Println("Posting answers to adventofcode.com")
+	fmt.Println("\nPosting answers to adventofcode.com")
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("https://adventofcode.com/%d/day/%d/answer", year, day), strings.NewReader(fmt.Sprintf("level=%d&answer=%s", level, answer)))
 	if err != nil {
@@ -232,6 +253,7 @@ func year2021(day, level int) {
 	days := []func() string{
 		func() string {
 			if level == 1 {
+				// 2021D1L1
 				lastNum, increases := -1, -1
 
 				for _, line := range input {
@@ -253,6 +275,7 @@ func year2021(day, level int) {
 				return fmt.Sprint(increases)
 			}
 
+			// 2021D1L2
 			length := len(input)
 			prevSum, increases := -1, -1
 			for i, line := range input {
@@ -288,6 +311,7 @@ func year2021(day, level int) {
 		},
 		func() string {
 			if level == 1 {
+				// 2021D2L1
 				depth, distance := 0, 0
 				for _, line := range input {
 					split := strings.Split(line, " ")
@@ -313,6 +337,7 @@ func year2021(day, level int) {
 				return fmt.Sprint(depth * distance)
 			}
 
+			// 2021D2L2
 			depth, distance, aim := 0, 0, 0
 			for _, line := range input {
 				split := strings.Split(line, " ")
