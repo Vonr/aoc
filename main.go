@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var token string
@@ -17,17 +19,20 @@ var years = map[int]func(int){
 func main() {
 	var year int
 	var day int
+	now := time.Now().UTC().Add(6 * time.Hour)
 
-	flag.IntVar(&year, "year", 2021, "Year")
-	flag.IntVar(&day, "day", 1, "Day")
+	flag.IntVar(&year, "year", now.Year(), "Year")
+	flag.IntVar(&day, "day", now.Day(), "Day")
 	flag.StringVar(&token, "token", "", "Session Token")
 	flag.Parse()
 
-	if token == "" {
+	if token == "" && !inputExists(year, day) {
 		fmt.Println("Please provide a session token")
+		os.Exit(1)
 		flag.Usage()
 		return
 	}
+
 	if day > 25 {
 		fmt.Println("Day must be between 1 and 25")
 		flag.Usage()
@@ -38,9 +43,33 @@ func main() {
 	years[year](day)
 }
 
+func inputExists(year, day int) bool {
+	_, err := os.Stat(fmt.Sprintf("inputs/%d/%d", year, day))
+	return !os.IsNotExist(err)
+}
+
 // Function inspired by https://github.com/GreenLightning/advent-of-code-downloader/blob/c020acc44d8bfa409252f71aaa8705e9a80c73e2/aocdl/main.go#L254
 func readInput(year, day int) []string {
-	// Inputs are located in https://adventofcode.com/year/day/<day>/input
+	if inputExists(year, day) {
+		fmt.Println("Reading input from file")
+
+		file, err := os.Open(fmt.Sprintf("inputs/%d/%d", year, day))
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+
+		b, err := ioutil.ReadAll(file)
+		if err != nil {
+			panic(err)
+		}
+
+		return strings.Split(string(b), "\n")
+	}
+
+	// Inputs are located in https://adventofcode.com/<year>/day/<day>/input
+	fmt.Println("Downloading input from adventofcode.com")
+
 	req, err := http.NewRequest("GET", fmt.Sprintf("https://adventofcode.com/%d/day/%d/input", year, day), nil)
 	if err != nil {
 		panic(err)
@@ -63,11 +92,28 @@ func readInput(year, day int) []string {
 		panic(err)
 	}
 
+	if res.StatusCode != 200 {
+		fmt.Println(string(body))
+		panic("Failed to download input")
+	}
+
+	// Save to file
+	err = os.MkdirAll(fmt.Sprintf("inputs/%d", year), 0755)
+	if err != nil {
+		panic(err)
+	}
+
+	err = ioutil.WriteFile(fmt.Sprintf("inputs/%d/%d", year, day), body, 0644)
+	if err != nil {
+		panic(err)
+	}
+
 	return strings.Split(string(body), "\n")
 }
 
 func year2021(day int) {
 	input := readInput(2021, day)
+	fmt.Println()
 
 	days := []func(){
 		func() {
