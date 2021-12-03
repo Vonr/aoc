@@ -2,6 +2,7 @@ package y2021
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -123,112 +124,42 @@ func Day2(level int, input []string) string {
 func Day3(level int, input []string) string {
 	if level == 1 {
 		// 2021D3L1
-		freq := make([]int, len(input[0]))
+		freq, gamma := make([]int, len(input[0])), ""
 		for _, line := range input {
 			for j, char := range line {
-				if char == '1' {
-					freq[j]++
-				} else {
-					freq[j]--
-				}
+				freq[j] += int(char)*2 - 97
 			}
 		}
-
-		var gamma string
-		var epsilon string
 		for _, v := range freq {
-			if v > 0 {
-				gamma += "1"
-				epsilon += "0"
-			} else {
-				gamma += "0"
-				epsilon += "1"
-			}
+			gamma += string(byte(math.Min(math.Max(float64(v), 0), 1) + 48))
 		}
-
-		g, err := strconv.ParseUint(gamma, 2, len(input[0]))
-		if err != nil {
-			panic(err)
-		}
-
-		e, err := strconv.ParseUint(epsilon, 2, len(input[0]))
-		if err != nil {
-			panic(err)
-		}
-
-		return fmt.Sprint(g * e)
+		x, _ := strconv.ParseUint(gamma, 2, len(gamma))
+		return fmt.Sprint(x * (^x & (1<<len(gamma) - 1)))
 	}
 
 	// 2021D3L2
-	oxy, co := input, input
-	var i int
-
-	for {
-		var newOxy, newCo []string
-		if len(oxy) > 1 {
-			oxyFreq := 0
-			for _, line := range oxy {
-				if len(line) == 0 {
-					continue
-				}
-				if line[i] == '1' {
-					oxyFreq++
-				} else {
-					oxyFreq--
+	oxy, co, i, calc := input, input, 0, func(in []string, a, b byte, i int) []string {
+		if len(in) > 1 {
+			var out []string
+			var freq int
+			for _, line := range in {
+				if len(line) > i {
+					freq += int(line[i])*2 - 97
 				}
 			}
-
-			for _, v := range oxy {
-				if len(v) == 0 {
-					continue
-				}
-				if (oxyFreq >= 0 && v[i] == '1') || (oxyFreq < 0 && v[i] == '0') {
-					newOxy = append(newOxy, v)
+			for _, v := range in {
+				if len(v) > i && ((freq >= 0 && v[i] == a) || (freq < 0 && v[i] == b)) {
+					out = append(out, v)
 				}
 			}
-			oxy = newOxy
+			return out
 		}
-
-		if len(co) > 1 {
-			coFreq := 0
-			for _, line := range co {
-				if len(line) == 0 {
-					continue
-				}
-				if line[i] == '1' {
-					coFreq++
-				} else {
-					coFreq--
-				}
-			}
-
-			for _, v := range co {
-				if len(v) == 0 {
-					continue
-				}
-				// If 1 and 0 are equally common, keep the ones starting with 0
-				if (coFreq >= 0 && v[i] == '0') || (coFreq < 0 && v[i] == '1') {
-					newCo = append(newCo, v)
-				}
-			}
-			co = newCo
-		}
-
-		if len(oxy) == 1 && len(co) == 1 {
-			break
-		}
-
-		i++
+		return in
 	}
-	o, err := strconv.ParseUint(oxy[0], 2, len(oxy[0]))
-	if err != nil {
-		panic(err)
+	for ; len(oxy) != 1 && len(co) != 1; i++ {
+		oxy = calc(oxy, '1', '0', i)
+		co = calc(co, '0', '1', i)
 	}
-
-	c, err := strconv.ParseUint(co[0], 2, len(co[0]))
-	if err != nil {
-		panic(err)
-	}
-
-	return fmt.Sprint(o * c)
+	x, _ := strconv.ParseUint(oxy[0]+co[0], 2, len(oxy[0])+len(co[0]))
+	return fmt.Sprint((x >> len(co[0])) * (x & (1<<len(co[0]) - 1)))
 }
