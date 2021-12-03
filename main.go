@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"os"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gen2brain/beeep"
+	"github.com/vonr/aoc/y2021"
 )
 
 var token string
-var years = map[int]func(int, int){
-	2021: year2021,
+var years = map[int]func(int, int, []string) string{
+	2021: func(day, level int, input []string) string { return y2021.Days[day-1](level, input) },
 }
 
 func main() {
@@ -83,8 +83,17 @@ func main() {
 	}
 
 	fmt.Printf("Running Year %d Day %d\n", year, day)
+	fmt.Println()
 
-	years[year](day, level)
+	answer := years[year](day, level, readInput(year, day))
+
+	if answer != "" {
+		if postAnswers(year, day, level, answer) {
+			fmt.Printf("Solved day %d %d level %d\n", year, day, level)
+		} else {
+			fmt.Printf("Failed to solve %d day %d level %d\n", year, day, level)
+		}
+	}
 }
 
 func inputExists(year, day int) bool {
@@ -245,132 +254,4 @@ func postAnswers(year, day, level int, answer string) bool {
 	}
 
 	return strings.Contains(string(body), "the right answer")
-}
-
-func year2021(day, level int) {
-	input := readInput(2021, day)
-	fmt.Println()
-
-	days := []func() string{
-		func() string {
-			if level == 1 {
-				// 2021D1L1
-				lastNum, increases := -1, -1
-
-				for _, line := range input {
-					num, err := strconv.Atoi(line)
-
-					if err != nil {
-						continue
-					}
-
-					if num > lastNum {
-						increases++
-					}
-
-					lastNum = num
-
-				}
-
-				fmt.Printf("Output: %d\n", increases)
-				return fmt.Sprint(increases)
-			}
-
-			// 2021D1L2
-			length := len(input)
-			prevSum, increases := -1, -1
-			for i, line := range input {
-				if i+2 >= length {
-					break
-				}
-
-				curr, err := strconv.Atoi(line)
-				if err != nil {
-					continue
-				}
-
-				next, err := strconv.Atoi(input[i+1])
-				if err != nil {
-					continue
-				}
-
-				nextNext, err := strconv.Atoi(input[i+2])
-				if err != nil {
-					continue
-				}
-
-				sum := curr + next + nextNext
-				if sum > prevSum {
-					increases++
-				}
-
-				prevSum = sum
-			}
-
-			fmt.Printf("Output: %d\n", increases)
-			return fmt.Sprint(increases)
-		},
-		func() string {
-			if level == 1 {
-				// 2021D2L1
-				depth, distance := 0, 0
-				for _, line := range input {
-					split := strings.Split(line, " ")
-					if len(split) != 2 {
-						continue
-					}
-					amount, err := strconv.Atoi(split[1])
-					if err != nil {
-						continue
-					}
-
-					switch split[0] {
-					case "up":
-						depth -= amount
-					case "down":
-						depth += amount
-					case "forward":
-						distance += amount
-					}
-
-				}
-				fmt.Printf("Output: %d\n", depth*distance)
-				return fmt.Sprint(depth * distance)
-			}
-
-			// 2021D2L2
-			depth, distance, aim := 0, 0, 0
-			for _, line := range input {
-				split := strings.Split(line, " ")
-				if len(split) != 2 {
-					continue
-				}
-				amount, err := strconv.Atoi(split[1])
-				if err != nil {
-					continue
-				}
-
-				switch split[0] {
-				case "up":
-					aim -= amount
-				case "down":
-					aim += amount
-				case "forward":
-					distance += amount
-					depth += aim * amount
-				}
-			}
-			fmt.Printf("Output: %d\n", depth*distance)
-			return fmt.Sprint(depth * distance)
-		},
-	}
-
-	answer := days[day-1]()
-	if answer != "" {
-		if postAnswers(2021, day, level, answer) {
-			fmt.Println("Solved day", day, "level", level)
-		} else {
-			fmt.Println("Failed to solve day", day, "level", level)
-		}
-	}
 }
