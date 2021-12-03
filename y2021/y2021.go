@@ -183,11 +183,7 @@ func Day3(level int, input []string) string {
 					continue
 				}
 				if (oxyFreq >= 0 && v[i] == '1') || (oxyFreq < 0 && v[i] == '0') {
-					if len(v) > 1 {
-						newOxy = append(newOxy, v)
-					} else {
-						newOxy = append(newOxy, v)
-					}
+					newOxy = append(newOxy, v)
 				}
 			}
 			oxy = newOxy
@@ -212,11 +208,7 @@ func Day3(level int, input []string) string {
 				}
 				// If 1 and 0 are equally common, keep the ones starting with 0
 				if (coFreq >= 0 && v[i] == '0') || (coFreq < 0 && v[i] == '1') {
-					if len(v) > 1 {
-						newCo = append(newCo, v)
-					} else {
-						newCo = append(newCo, v)
-					}
+					newCo = append(newCo, v)
 				}
 			}
 			co = newCo
