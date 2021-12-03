@@ -25,7 +25,7 @@ func main() {
 	var level int
 	var prompt bool
 	var wait int64
-	now := time.Now().UTC().Add(6 * time.Hour)
+	now := time.Now().UTC()
 
 	flag.IntVar(&year, "year", now.Year(), "Year")
 	flag.IntVar(&day, "day", now.Day(), "Day")
@@ -38,10 +38,11 @@ func main() {
 
 	if wait != -1 {
 		aocStart := time.Date(year, now.Month(), day, 0, 0, 0, 0, time.UTC).Add(6 * time.Hour)
+		fmt.Printf("The time now is %s\n", now.Local())
 		fmt.Printf("AoC starts at %s\n", aocStart.Local())
 		for {
 			if now.Before(aocStart.Add(-time.Duration(wait) * time.Second)) {
-				time.Sleep(time.Duration(aocStart.UnixNano() - now.UnixNano() - time.Duration(wait).Nanoseconds()))
+				time.Sleep(time.Duration(aocStart.UnixNano() - now.UnixNano() - time.Duration(wait*int64(time.Second)).Nanoseconds()))
 			} else {
 				break
 			}
