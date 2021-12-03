@@ -8,8 +8,8 @@
 
 ```bash
 ./aoc
-    -year   num  # <Default: Current Year in AoC's timezone (UTC +06:00)>
-    -day    num  # <Default: Current Day in AoC's timezone (UTC +06:00)>
+    -year   num  # <Default: Current Year in AoC's timezone>
+    -day    num  # <Default: Current Day in AoC's timezone>
     -level  num  # <Default: 1>
         # Challenge level, there are 2 levels per day.
     -token  str  # <Default:  >
