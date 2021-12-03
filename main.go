@@ -78,7 +78,7 @@ func main() {
 				panic(err)
 			}
 
-			token = string(b)
+			token = strings.Split(string(b), "\n")[0]
 		}
 	}
 
