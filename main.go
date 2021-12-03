@@ -53,17 +53,6 @@ func main() {
 		prompt = true
 	}
 
-	if prompt {
-		fmt.Println(getPrompt(year, day, level))
-		return
-	}
-
-	if day > 25 {
-		fmt.Println("Day must be between 1 and 25")
-		flag.Usage()
-		return
-	}
-
 	if token == "" {
 		_, err := os.Stat(".token")
 		if !os.IsNotExist(err) {
@@ -81,6 +70,17 @@ func main() {
 
 			token = strings.Split(string(b), "\n")[0]
 		}
+	}
+
+	if prompt {
+		fmt.Println(getPrompt(year, day, level))
+		return
+	}
+
+	if day > 25 {
+		fmt.Println("Day must be between 1 and 25")
+		flag.Usage()
+		return
 	}
 
 	fmt.Printf("Running Year %d Day %d\n", year, day)
@@ -187,7 +187,7 @@ func getPrompt(year, day, level int) string {
 	cookie.Value = token
 	req.AddCookie(cookie)
 
-	req.Header.Set("Cookie", "session=53616c7465645f5f14cf2bc586efce791627683bfb764f0535290016b208380bb483ee7a1c2527389061208a15bc2ae1")
+	req.Header.Set("Cookie", "session="+token)
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -209,7 +209,7 @@ func getPrompt(year, day, level int) string {
 	re := regexp.MustCompile("<(.|\n)*?>")
 	html = re.ReplaceAllString(html, "")
 
-	//Prompt starts after the line beginning with "window." and ends before the line beginning with "Answer"
+	//Prompt starts after the line beginning with "window." and ends before the line beginning with "(function"
 	lines := strings.Split(html, "\n")
 	for i, line := range lines {
 		if strings.Contains(line, "window.") {
@@ -219,13 +219,13 @@ func getPrompt(year, day, level int) string {
 	}
 
 	for i, line := range lines {
-		if strings.Contains(line, "Answer") {
+		if strings.Contains(line, "(function") {
 			lines = lines[:i]
 			break
 		}
 	}
 
-	return strings.Join(lines, "\n")
+	return strings.ReplaceAll(strings.ReplaceAll(strings.Join(lines, "\n"), ".", ".\n"), "\n ", "\n")
 }
 
 func postAnswers(year, day, level int, answer string) bool {
