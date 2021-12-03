@@ -124,17 +124,16 @@ func Day2(level int, input []string) string {
 func Day3(level int, input []string) string {
 	if level == 1 {
 		// 2021D3L1
-		freq, gamma := make([]int, len(input[0])), ""
+		freq, gamma := make([]int, len(input[0])), uint(0)
 		for _, line := range input {
 			for j, char := range line {
 				freq[j] += int(char)*2 - 97
 			}
 		}
-		for _, v := range freq {
-			gamma += string(byte(math.Min(math.Max(float64(v), 0), 1) + 48))
+		for i, v := range freq {
+			gamma += uint(math.Min(math.Max(float64(v), 0), 1)) << uint(len(input[0])-i-1)
 		}
-		x, _ := strconv.ParseUint(gamma, 2, len(gamma))
-		return fmt.Sprint(x * (^x & (1<<len(gamma) - 1)))
+		return fmt.Sprint(gamma * (^gamma & (1<<len(freq) - 1)))
 	}
 
 	// 2021D3L2
