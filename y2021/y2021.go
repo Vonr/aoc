@@ -15,22 +15,13 @@ func Day1(level int, input []string) string {
 	if level == 1 {
 		// 2021D1L1
 		lastNum, increases := -1, -1
-
 		for _, line := range input {
-			num, err := strconv.Atoi(line)
-
-			if err != nil {
-				continue
-			}
-
+			num, _ := strconv.Atoi(line)
 			if num > lastNum {
 				increases++
 			}
-
 			lastNum = num
-
 		}
-
 		return fmt.Sprint(increases)
 	}
 
@@ -41,22 +32,9 @@ func Day1(level int, input []string) string {
 		if i+2 >= length {
 			break
 		}
-
-		curr, err := strconv.Atoi(line)
-		if err != nil {
-			continue
-		}
-
-		next, err := strconv.Atoi(input[i+1])
-		if err != nil {
-			continue
-		}
-
-		nextNext, err := strconv.Atoi(input[i+2])
-		if err != nil {
-			continue
-		}
-
+		curr, _ := strconv.Atoi(line)
+		next, _ := strconv.Atoi(input[i+1])
+		nextNext, _ := strconv.Atoi(input[i+2])
 		sum := curr + next + nextNext
 		if sum > prevSum {
 			increases++
