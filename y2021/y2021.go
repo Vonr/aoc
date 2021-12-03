@@ -31,7 +31,6 @@ func Day1(level int, input []string) string {
 
 		}
 
-		fmt.Printf("Output: %d\n", increases)
 		return fmt.Sprint(increases)
 	}
 
@@ -45,19 +44,16 @@ func Day1(level int, input []string) string {
 
 		curr, err := strconv.Atoi(line)
 		if err != nil {
-			fmt.Println("failed to convert curr")
 			continue
 		}
 
 		next, err := strconv.Atoi(input[i+1])
 		if err != nil {
-			fmt.Println("failed to convert next")
 			continue
 		}
 
 		nextNext, err := strconv.Atoi(input[i+2])
 		if err != nil {
-			fmt.Println("failed to convert nextNext")
 			continue
 		}
 
@@ -69,7 +65,6 @@ func Day1(level int, input []string) string {
 		prevSum = sum
 	}
 
-	fmt.Printf("Output: %d\n", increases)
 	return fmt.Sprint(increases)
 }
 
@@ -97,7 +92,6 @@ func Day2(level int, input []string) string {
 			}
 
 		}
-		fmt.Printf("Output: %d\n", depth*distance)
 		return fmt.Sprint(depth * distance)
 	}
 
@@ -123,7 +117,6 @@ func Day2(level int, input []string) string {
 			depth += aim * amount
 		}
 	}
-	fmt.Printf("Output: %d\n", depth*distance)
 	return fmt.Sprint(depth * distance)
 
 }

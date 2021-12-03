@@ -86,6 +86,7 @@ func main() {
 	fmt.Println()
 
 	answer := years[year](day, level, readInput(year, day))
+	fmt.Printf("Output: %s\n", answer)
 
 	if answer != "" {
 		if postAnswers(year, day, level, answer) {
