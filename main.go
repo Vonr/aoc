@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strings"
@@ -37,7 +38,7 @@ func main() {
 	flag.Parse()
 
 	if wait != -1 {
-		aocStart := time.Date(year, now.Month(), day, 0, 0, 0, 0, time.UTC).Add(6 * time.Hour)
+		aocStart := time.Date(year, now.Month(), day, 5, 0, 0, 0, time.UTC)
 		fmt.Printf("The time now is %s\n", now.Local())
 		fmt.Printf("AoC starts at %s\n", aocStart.Local())
 		for {
@@ -53,7 +54,7 @@ func main() {
 	}
 
 	if prompt {
-		fmt.Println(getPrompt(year, day))
+		fmt.Println(getPrompt(year, day, level))
 		return
 	}
 
@@ -172,15 +173,26 @@ func readInput(year, day int) []string {
 	return strings.Split(string(body), "\n")
 }
 
-func getPrompt(year, day int) string {
+func getPrompt(year, day, level int) string {
 	// Prompt is located in https://adventofcode.com/<year>/day/<day>
 	fmt.Print("Downloading prompt from adventofcode.com\n\n")
 
-	res, err := http.Get(fmt.Sprintf("https://adventofcode.com/%d/day/%d", year, day))
+	req, err := http.NewRequest("GET", fmt.Sprintf("https://adventofcode.com/%d/day/%d#part%d", year, day, level), nil)
 	if err != nil {
 		panic(err)
 	}
 
+	cookie := new(http.Cookie)
+	cookie.Name = "session"
+	cookie.Value = token
+	req.AddCookie(cookie)
+
+	req.Header.Set("Cookie", "session=53616c7465645f5f14cf2bc586efce791627683bfb764f0535290016b208380bb483ee7a1c2527389061208a15bc2ae1")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
@@ -197,17 +209,17 @@ func getPrompt(year, day int) string {
 	re := regexp.MustCompile("<(.|\n)*?>")
 	html = re.ReplaceAllString(html, "")
 
-	//Prompt starts after the line beginning with "window.addEventListener" and ends before the line beginning with "To play"
+	//Prompt starts after the line beginning with "window." and ends before the line beginning with "Answer"
 	lines := strings.Split(html, "\n")
 	for i, line := range lines {
-		if strings.Contains(line, "window.addEventListener") {
+		if strings.Contains(line, "window.") {
 			lines = lines[i+1:]
 			break
 		}
 	}
 
 	for i, line := range lines {
-		if strings.Contains(line, "To play") {
+		if strings.Contains(line, "Answer") {
 			lines = lines[:i]
 			break
 		}
@@ -227,7 +239,12 @@ func postAnswers(year, day, level int, answer string) bool {
 	// Answers are posted to https://adventofcode.com/<year>/day/<day>/answer
 	fmt.Println("\nPosting answers to adventofcode.com")
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("https://adventofcode.com/%d/day/%d/answer", year, day), strings.NewReader(fmt.Sprintf("level=%d&answer=%s", level, answer)))
+	params := url.Values{}
+	params.Add("level", fmt.Sprint(level))
+	params.Add("answer", answer)
+	payload := strings.NewReader(params.Encode())
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("https://adventofcode.com/%d/day/%d/answer", year, day), payload)
 	if err != nil {
 		panic(err)
 	}
@@ -236,6 +253,8 @@ func postAnswers(year, day, level int, answer string) bool {
 	cookie.Name = "session"
 	cookie.Value = token
 	req.AddCookie(cookie)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -254,5 +273,15 @@ func postAnswers(year, day, level int, answer string) bool {
 		panic("Failed to post answers")
 	}
 
-	return strings.Contains(string(body), "the right answer")
+	if strings.Contains(string(body), "already complete") {
+		fmt.Printf("Already completed %d day %d level %d\n", year, day, level)
+		return false
+	}
+
+	if strings.Contains(string(body), "too recently") {
+		fmt.Println("Slow down!")
+		return false
+	}
+
+	return !strings.Contains(string(body), "not the right answer")
 }
